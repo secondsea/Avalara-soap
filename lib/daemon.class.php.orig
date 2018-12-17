@@ -1,0 +1,240 @@
+<?php
+
+/*
+ * allow locking of a queue table to prevent multiple processes from running simultaneously.
+ */
+class daemon
+{
+	/**
+	 * name of queue
+	 * @var string
+	 */
+	protected $_object;
+
+	/**
+	 * version of queue this is processing [test|live|daily|red|blue]
+	 * @var string
+	 */
+	protected $_dbtype;
+
+	/**
+	 * @var resq pdo connection
+	 */
+	protected $_conn;
+
+	/**
+	 * newline ['<br />'|'\n']
+	 * @var string
+	 */
+	protected $_nl;
+
+	/**
+	 * command line?
+	 * @var boolean
+	 */
+	protected $_cli;
+
+	/**
+	 * initialize daemon instance
+	 *
+	 * @param string $object (name of queue)
+	 * @param string $dbtype (version of queue this is processing [test|live|daily|red|blue])
+	 */
+	public function __construct($object, $dbtype = 'default')
+	{
+		$this->_object = $object;
+		$this->_dbtype = $dbtype;
+
+		$this->_cli = isset($_SERVER['HOME']);
+		$this->_nl = $this->_cli ? "\n" : "<br />";
+		
+		$this->_conn = self::get_conn();
+		
+//		// set PDO timeout to 30s for daemon queries
+//		//  if this takes longer than 30s, something is up, and should juat act like it's locked; better safe than sorry
+//		// if this ends up taking longer than the polling time between scheduled jobs, we can still end up with duplicate instances
+//		$this->_conn->setAttribute(PDO::ATTR_TIMEOUT, 30);
+	}
+	
+	public static function get_conn()
+	{
+		try
+		{
+			$conn = resq::connect();
+		}
+		catch (PDOException $e)
+		{
+			echo 'ERROR: ' , $e->getMessage() . "\n" ;
+			exit();
+		}
+		catch (Exception $e)
+		{
+			echo 'ERROR: ' , $e->getMessage() . "\n" ;
+			exit();
+		}
+		
+		return $conn;
+	}
+
+	/**
+	 * check if this table is already being processed, and if not, lock it
+	 *
+	 * @param bool $exit_when_running (if true, run exit() killing this entire process; otherwise, return false)
+	 * @return bool (can this queue be processed now?)
+	 */
+	public function start($exit_when_running = true, $stuck_threshold = 20)
+	{
+		echo $this->_nl, "checking lock on $this->_dbtype $this->_object. at " . date('Y/m/d H:i:s', time()), $this->_nl;
+
+		try
+		{
+			$q = $this->_conn->prepare("select in_process, case when start_time > finish_time and datediff(minute, start_time, getdate()) > {$stuck_threshold} then 1 else 0 end as is_stuck from sandbox.dbo.daemon where object = :object and dbtype = :dbtype");
+			$q->bindParam(':object', $this->_object);
+			$q->bindParam(':dbtype', $this->_dbtype);
+
+			$q->execute();
+			$rs = $q->fetchAll(PDO::FETCH_ASSOC);
+		}
+		catch (PDOException $e)
+		{
+			echo 'ERROR: ' , $e->getMessage(), $this->_nl;
+			
+			if ($exit_when_running)
+				die();
+			else return false;
+		}
+
+		// if no daemon entry for this queue, create one
+		$currently_running = $is_stuck = false;
+		if (empty($rs))
+			$this->create();
+		else $currently_running = (bool) $rs[0]['in_process'];
+		
+		$is_stuck = $rs[0]['is_stuck'];
+		if ($is_stuck)
+		{
+			echo "$this->_dbtype $this->_object is stuck.", $this->_nl, $this->_nl;
+			
+			if ( $this->_dbtype == 'live') 
+				@mail('chris@pineconehill.com', "$this->_dbtype $this->_object is stuck", '');
+		}
+
+		if ($currently_running)
+		{
+			// do I want to just exit here? or is there something a script would have to do regardless of whether the queue is locked
+			echo "$this->_dbtype $this->_object is currently running: locked.", $this->_nl, $this->_nl;
+			
+			if ($exit_when_running)
+				die();
+			else return false;
+		}
+
+		$this->set_process_state(true);
+		return true;
+	}
+
+	/**
+	 * unlock table, processing is done
+	 */
+	public function end()
+	{
+		$this->set_process_state(false);
+	}
+
+	/**
+	 * lock or unlock table $object
+	 *
+	 * @param bool $state (true to lock, false to unlock)
+	 * @return bool (did query run successfully)
+	 */
+	private function set_process_state($state)
+	{
+		$action = $state === true ? 'lock' : 'unlock';
+
+		echo $this->_nl, "{$action}ing $this->_dbtype $this->_object.", $this->_nl;
+
+		try
+		{
+			$q_string = "update sandbox.dbo.daemon set in_process = :state";
+
+			if ($state === true)
+				$q_string .= ", start_time = getdate()";
+			else $q_string .= ", finish_time = getdate()";
+
+			$q_string .= " where object = :object and dbtype = :dbtype";
+
+			$q = $this->_conn->prepare($q_string);
+			$q->bindParam(':object', $this->_object);
+			$q->bindParam(':dbtype', $this->_dbtype);
+			$q->bindParam(':state', $state);
+
+			$success = $q->execute();
+		}
+		catch (PDOException $e)
+		{
+			echo 'ERROR: ' , $e->getMessage() . $this->_nl, $this->_nl;
+			exit();
+		}
+
+		// unable to update lock status
+		if ($success === false)
+		{
+			echo "ERROR: unable to {$action} $this->_dbtype $this->_object.", $this->_nl, $this->_nl;
+			exit();
+		}
+
+		echo "$this->_dbtype $this->_object {$action}ed at " . date('Y/m/d H:i:s', time()), $this->_nl, $this->_nl;
+	}
+
+	/**
+	 * first time this is run for a given queue, create a new entry
+	 */
+	private function create()
+	{
+		try
+		{
+			$q_string = "insert into sandbox.dbo.daemon (object, dbtype) values (:object, :dbtype)";
+
+			$q = $this->_conn->prepare($q_string);
+			$q->bindParam(':object', $this->_object);
+			$q->bindParam(':dbtype', $this->_dbtype);
+
+			$success = $q->execute();
+		}
+		catch (PDOException $e)
+		{
+			echo 'ERROR: ', $e->getMessage(), $this->_nl;
+			exit();
+		}
+
+		// unable to insert new entry
+		if ($success !== true)
+		{
+			echo "ERROR: unable to create new lock entry for $this->_dbtype $this->_object.", $this->_nl, $this->_nl;
+			exit();
+		}
+	}
+
+	/**
+	 * get the status of all entries
+	 */
+	public function get_status()
+	{
+		try
+		{
+			$q = $this->_conn->prepare("select * from sandbox.dbo.daemon where dbtype = :dbtype order by object asc");
+			
+			$dbtype = 'live';
+			$q->bindParam(':dbtype', $dbtype);
+
+			$q->execute();
+			$rs = $q->fetchAll(PDO::FETCH_ASSOC);
+		}
+		catch (PDOException $e)
+		{
+			return 'ERRORdd: ' . $e->getMessage();
+		}
+		
+		return $rs;
+	}
+}

@@ -1,0 +1,1 @@
+took out error condition for contract look up

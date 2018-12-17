@@ -1,0 +1,13 @@
+
+<IfModule mod_rewrite.c>
+	# any urls with a file extension get passed directly to that file
+	RewriteCond %{REQUEST_URI} \..+$
+	RewriteRule .* - [L]
+
+	# anything else gets passed to ccq controller
+	RewriteEngine On
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule ^(.*)$ /index.php?action=$1 [QSA,L]
+
+</IfModule>

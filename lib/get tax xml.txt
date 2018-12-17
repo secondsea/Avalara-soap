@@ -1,0 +1,83 @@
+
+**********CONTRACT NUMBER: 372845    *************************************
+Exception: Input string was not in a correct format.
+
+<?xml version="1.0" encoding="UTF-8"?>
+	<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://avatax.avalara.com/services">
+		<SOAP-ENV:Header>
+			<wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" SOAP-ENV:mustUnderstand="1">
+				<wsse:UsernameToken>
+					<wsse:Username>1100013556</wsse:Username>
+					<wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">218025EBF2B8A610</wsse:Password>
+				</wsse:UsernameToken>
+			</wsse:Security>
+			<Profile xmlns="http://avatax.avalara.com/services" SOAP-ENV:actor="http://schemas.xmlsoap.org/soap/actor/next" SOAP-ENV:mustUnderstand="0">
+				<Name>14.4</Name>
+				<Client>AvaTaxSample</Client>
+				<Adapter>avatax4php,14.2.0.0</Adapter>
+			</Profile>
+		</SOAP-ENV:Header>
+		<SOAP-ENV:Body>
+			<ns1:GetTax>
+				<ns1:GetTaxRequest>
+					<ns1:CompanyCode>fatest</ns1:CompanyCode>
+					<ns1:DocType>SalesInvoice</ns1:DocType>
+					<ns1:DocCode>372845    </ns1:DocCode>
+					<ns1:DocDate>2016-02-08</ns1:DocDate>
+					<ns1:Discount>0</ns1:Discount>
+					<ns1:OriginCode>0</ns1:OriginCode>
+					<ns1:DestinationCode>1</ns1:DestinationCode>
+					<ns1:Addresses>
+						<ns1:BaseAddress>
+							<ns1:AddressCode>0</ns1:AddressCode>
+							<ns1:Line1>125 Pecks Rd</ns1:Line1>
+							<ns1:City>Pittsfield</ns1:City>
+							<ns1:Region>MA</ns1:Region>
+							<ns1:PostalCode>01201</ns1:PostalCode>
+							<ns1:Country>US</ns1:Country>
+							<ns1:TaxRegionId>0</ns1:TaxRegionId>
+						</ns1:BaseAddress>
+						<ns1:BaseAddress>
+							<ns1:AddressCode>1</ns1:AddressCode>
+							<ns1:Country>USA</ns1:Country>
+							<ns1:TaxRegionId>0</ns1:TaxRegionId>
+						</ns1:BaseAddress>
+					</ns1:Addresses>
+					<ns1:Lines>
+						<ns1:Line>
+							<ns1:No>1</ns1:No>
+							<ns1:OriginCode>0</ns1:OriginCode>
+							<ns1:DestinationCode>1</ns1:DestinationCode>
+							<ns1:Qty/>
+							<ns1:Amount/>
+							<ns1:Discounted>false</ns1:Discounted>
+						</ns1:Line>
+					</ns1:Lines>
+					<ns1:DetailLevel>Tax</ns1:DetailLevel>
+					<ns1:HashCode>0</ns1:HashCode>
+					<ns1:Commit>false</ns1:Commit>
+					<ns1:ServiceMode>Automatic</ns1:ServiceMode>
+					<ns1:PaymentDate>1900-01-01</ns1:PaymentDate>
+					<ns1:ExchangeRate>1</ns1:ExchangeRate>
+					<ns1:ExchangeRateEffDate>1900-01-01</ns1:ExchangeRateEffDate>
+				</ns1:GetTaxRequest>
+			</ns1:GetTax>
+		</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+
+
+
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><s:Fault><faultcode xmlns:a="http://schemas.microsoft.com/net/2005/12/windowscommunicationfoundation/dispatcher">a:InternalServiceFault</faultcode><faultstring xml:lang="en-US">Input string was not in a correct format.</faultstring><detail><ArgumentFault xmlns="http://schemas.datacontract.org/2004/07/Avalara.Web.Soap.Extensions" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"><message>Input string was not in a correct format.</message></ArgumentFault></detail></s:Fault></s:Body></s:Envelope>
+
+
+
+  PHP Fatal error:  Call to a member function getResultCode() on a non-object in /web/mary/avalaraq/lib/pchAvalaraAuth.php on line 86
+PHP Stack trace:
+PHP   1. {main}() /web/mary/avalaraq/pch_avalaraQ.php:0
+PHP   2. pchAvalaraAuth->processTax() /web/mary/avalaraq/pch_avalaraQ.php:68
+********CONTRACT NUMBER: 372845    *************************************
+Exception: Inpu_alat string was not in a correct format.
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://avatax.avalara.com/services"><SOAP-ENV:Header><wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" SOAP-ENV:mustUnderstand="1"><wsse:UsernameToken><wsse:Username>1100013556</wsse:Username><wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">218025EBF2B8A610</wsse:Password></wsse:UsernameToken></wsse:Security><Profile xmlns="http://avatax.avalara.com/services" SOAP-ENV:actor="http://schemas.xmlsoap.org/soap/actor/next" SOAP-ENV:mustUnderstand="0"><Name>14.4</Name><Client>AvaTaxSample</Client><Adapter>avatax4php,14.2.0.0</Adapter></Profile></SOAP-ENV:Header><SOAP-ENV:Body><ns1:GetTax><ns1:GetTaxRequest><ns1:CompanyCode>fatest</ns1:CompanyCode><ns1:DocType>SalesInvoice</ns1:DocType><ns1:DocCode>372845    </ns1:DocCode><ns1:DocDate>2016-02-08</ns1:DocDate><ns1:Discount>0</ns1:Discount><ns1:OriginCode>0</ns1:OriginCode><ns1:DestinationCode>1</ns1:DestinationCode><ns1:Addresses><ns1:BaseAddress><ns1:AddressCode>0</ns1:AddressCode><ns1:Line1>125 Pecks Rd</ns1:Line1><ns1:City>Pittsfield</ns1:City><ns1:Region>MA</ns1:Region><ns1:PostalCode>01201</ns1:PostalCode><ns1:Country>US</ns1:Country><ns1:TaxRegionId>0</ns1:TaxRegionId></ns1:BaseAddress><ns1:BaseAddress><ns1:AddressCode>1</ns1:AddressCode><ns1:Country>USA</ns1:Country><ns1:TaxRegionId>0</ns1:TaxRegionId></ns1:BaseAddress></ns1:Addresses><ns1:Lines><ns1:Line><ns1:No>1</ns1:No><ns1:OriginCode>0</ns1:OriginCode><ns1:DestinationCode>1</ns1:DestinationCode><ns1:Qty/><ns1:Amount/><ns1:Discounted>false</ns1:Discounted></ns1:Line></ns1:Lines><ns1:DetailLevel>Tax</ns1:DetailLevel><ns1:HashCode>0</ns1:HashCode><ns1:Commit>false</ns1:Commit><ns1:ServiceMode>Automatic</ns1:ServiceMode><ns1:PaymentDate>1900-01-01</ns1:PaymentDate><ns1:ExchangeRate>1</ns1:ExchangeRate><ns1:ExchangeRateEffDate>1900-01-01</ns1:ExchangeRateEffDate></ns1:GetTaxRequest></ns1:GetTax></SOAP-ENV:Body></SOAP-ENV:Envelope>
+
